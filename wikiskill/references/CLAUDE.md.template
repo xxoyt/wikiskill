@@ -1,0 +1,114 @@
+# Claude Code WikiSkill 配置
+
+本项目使用 WikiSkill 框架进行经验积累与技能进化。
+
+## Wiki 结构
+
+所有经验数据存储在 `.wiki/` 目录：
+
+```
+.wiki/
+├── raw/              # 执行轨迹（按日期追加）
+├── knowledge/        # 持久化知识（失败模式 + 成功策略）
+│   ├── patterns.md
+│   ├── evolution_log.md
+│   └── impact_tracker.md
+├── skills/           # 可复用技能（可回滚）
+└── meta/             # 配置信息
+```
+
+## 工作流程
+
+### 1. 执行任务时
+在 `.wiki/raw/YYYY-MM-DD.md` 末尾追加轨迹：
+- 记录关键决策点和异常
+- 每条轨迹 ≤10 行
+- 标记结果：✅ 成功 / ❌ 失败 / ⚠️ 部分成功
+
+### 2. 复盘时（每 3-5 个任务后）
+读取最近的轨迹，提炼模式到 `.wiki/knowledge/patterns.md`：
+- 失败模式（FM-xxx）：同一错误出现 ≥2 次
+- 成功策略（SS-xxx）：有效技巧在多个任务中验证
+
+### 3. 技能进化时（每 5-10 个任务后）
+基于 patterns 提出原子化改进：
+- 每次只改一个技能
+- 写入 `.wiki/skills/` 或修改现有技能
+- 在 `impact_tracker.md` 记录提案，待后续验证
+
+## 关键原则
+
+- **Wiki 永不重置**：知识层只增不减
+- **原子化改进**：每轮只改一个技能
+- **失败也是知识**：被拒绝的提案记录原因
+- **验证后才采纳**：所有变更必须经过门控
+
+## 触发命令
+
+- "记录轨迹" / "wiki log" → 追加当前任务轨迹
+- "复盘" / "wiki maintain" → 提炼 patterns
+- "进化技能" / "wiki evolve" → 提出并验证技能改进
+- "wiki 状态" / "wiki status" → 展示统计
+
+## 初始化
+
+<!-- INIT_SECTION_START -->
+如果 `.wiki/` 不存在，任选一种方式创建：
+
+**方式 A — 用项目内脚本**（若 `.wiki/scripts/` 已存在）。一条命令，所有 shell 通用：
+
+```bash
+python .wiki/scripts/wiki_init.py
+```
+```bash
+# Git Bash / WSL / Linux / macOS 也可用 .sh
+bash .wiki/scripts/wiki_init.sh
+```
+
+**方式 A′ — 用 skill 目录的脚本**。把 `<skill目录>` 换成 wikiskill 的实际位置：
+
+```powershell
+# Windows PowerShell
+python "<skill目录>\scripts\wiki_init.py"
+```
+```cmd
+:: Windows CMD
+python "<skill目录>\scripts\wiki_init.py"
+```
+```bash
+# Linux / macOS / Git Bash / WSL
+bash "<skill目录>/scripts/wiki_init.sh"
+```
+```powershell
+# Windows PowerShell（无 Python 时的备选）
+powershell -ExecutionPolicy Bypass -File "<skill目录>\scripts\wiki_init.ps1"
+```
+
+> **`.workbuddy/` 是 WorkBuddy 的私有目录。** 如果你没装 WorkBuddy，
+> `~/.workbuddy/skills/wikiskill/...` 这条路径**不存在**，命令会失败。
+> 请用上面的 `<skill目录>` 写法，或直接用方式 B。
+>
+> **Git Bash 陷阱**：在 Git Bash 里**不要**用 `python "$HOME/..."`。
+> Git Bash 的 `$HOME` 是 POSIX 格式（`/c/Users/xxx`），Windows 原生 Python 会解析成
+> `C:\c\Users\xxx` 而找不到文件。Git Bash 请用 `.sh` 版本，
+> 或改用 `python "$USERPROFILE\..."` / `python "$(cygpath -w "$HOME")/..."`。
+
+**方式 B — 手动创建**（零外部依赖，任何环境都能用）：
+```bash
+mkdir -p .wiki/raw .wiki/knowledge .wiki/skills .wiki/meta
+printf '# 模式库\n\n## 失败模式\n\n（暂无记录）\n\n## 成功策略\n\n（暂无记录）\n' > .wiki/knowledge/patterns.md
+printf '# 技能演化日志\n\n（暂无记录）\n' > .wiki/knowledge/evolution_log.md
+printf '# 提案影响追踪\n\n（暂无记录）\n' > .wiki/knowledge/impact_tracker.md
+```
+<!-- INIT_SECTION_END -->
+
+## 参考
+
+<!-- REF_SECTION_START -->
+- 详细工作流：`.wiki/references/workflow.md`（项目内，若已随运行时复制）
+- 模板集合：`.wiki/references/templates.md`
+- 备选（需已安装 WorkBuddy）：`~/.workbuddy/skills/wikiskill/references/`
+- 原论文：Google Research, arXiv:2608.27454
+<!-- REF_SECTION_END -->
+
+> 本文件已内联 WikiSkill 的完整规则，可独立工作。若上述参考文件不可读，按本文件执行即可。
