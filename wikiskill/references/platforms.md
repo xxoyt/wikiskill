@@ -140,7 +140,7 @@ python <skill目录>/scripts/install.py --platform claude --target <项目目录
 
 1. 复制模板文件到项目根目录：
    ```bash
-   cp "<skill目录>/references/CLAUDE.md.template" CLAUDE.md
+   cp "<skill目录>/references/CLAUDE.example.md" CLAUDE.md
    ```
 
 2. 编辑 `CLAUDE.md`，按需调整：
@@ -185,7 +185,7 @@ python <skill目录>/scripts/install.py --platform codex --target <项目目录>
 
 1. 复制模板文件到项目根目录：
    ```bash
-   cp "<skill目录>/references/AGENTS.md.template" AGENTS.md
+   cp "<skill目录>/references/AGENTS.example.md" AGENTS.md
    ```
 
 2. 编辑 `AGENTS.md`，按需调整：

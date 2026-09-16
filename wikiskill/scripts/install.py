@@ -57,13 +57,13 @@ REFERENCE_FILES = ["workflow.md", "platforms.md", "automation.md", "templates.md
 PLATFORM_SPECS = {
     "claude": {
         "instruction": "CLAUDE.md",
-        "template": "CLAUDE.md.template",
+        "template": "CLAUDE.example.md",
         "user_dir": ".claude",
         "supports_hook": True,
     },
     "codex": {
         "instruction": "AGENTS.md",
-        "template": "AGENTS.md.template",
+        "template": "AGENTS.example.md",
         "user_dir": ".codex",
         "supports_hook": False,
     },

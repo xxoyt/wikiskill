@@ -127,8 +127,8 @@ source_patterns: [FM-001, SS-002]
 本 skill 的核心是 `.wiki/` 目录结构和 markdown 文件格式，与平台无关。
 
 - **WorkBuddy / CodeBuddy**：直接按本 SKILL.md 执行
-- **Claude Code**：将 `references/CLAUDE.md.template` 复制到项目根目录为 `CLAUDE.md`
-- **Codex**：将 `references/AGENTS.md.template` 复制到项目根目录为 `AGENTS.md`
+- **Claude Code**：将 `references/CLAUDE.example.md` 复制到项目根目录为 `CLAUDE.md`
+- **Codex**：将 `references/AGENTS.example.md` 复制到项目根目录为 `AGENTS.md`
 
 所有平台共享同一个 `.wiki/` 目录，经验可跨平台迁移。详见 `references/platforms.md`。
 
