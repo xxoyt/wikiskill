@@ -624,8 +624,10 @@ L4 无法自动化，但**有明确的操作步骤**，不装任何东西：
 
 **Windows 上不要直接敲裸 `bash xxx.sh`**（实测陷阱）
 
-Windows 自带 `C:\Windows\System32\bash.exe` 是 **WSL 中继**，不是 Git Bash。它通常排在 PATH 前面，
-所以裸 `bash` 会命中它；若机器没装 WSL 发行版，你会看到这类报错（而不是脚本跑起来）：
+Windows 自带一个 `bash.exe`（**WSL 中继**，位于 `%SystemRoot%\System32\`），它**不是** Git Bash。
+它通常排在 PATH 前面，所以裸 `bash` 会命中它；若机器没装 WSL 发行版，你会看到这类报错（而不是脚本跑起来）：
+
+> `%SystemRoot%` 绝大多数机器是 `C:\Windows`，但系统装在别的盘时不成立——所以这里不写死盘符。
 
 ```
 <3>WSL (12 - Relay) ERROR: CreateProcessCommon:818: execvpe(/bin/bash) failed: No such file or directory
@@ -636,8 +638,21 @@ Windows 自带 `C:\Windows\System32\bash.exe` 是 **WSL 中继**，不是 Git Ba
 | 解法 | 命令 |
 |------|------|
 | 直接用 `.py`（最省事，安装器在 Windows 上默认就这么做） | `python .wiki/scripts/wiki_init.py` |
-| 显式调用 Git Bash 的 bash | `"C:\Program Files\Git\bin\bash.exe" .wiki/scripts/wiki_init.sh` |
+| 显式调用 Git Bash 的 bash | `"<Git 安装目录>\bin\bash.exe" .wiki/scripts/wiki_init.sh` |
 | 先进入 Git Bash 终端再跑 | 在 Git Bash 里执行 `bash wiki_init.sh` |
+
+**`<Git 安装目录>` 各机不同**，别照抄：Git 默认装在 `C:\Program Files\Git`，但也可能被装到
+`D:\Program Files\Git`、`%LOCALAPPDATA%\Programs\Git`（免管理员安装）或任意自选目录。
+先查你机器上的实际路径：
+
+| Shell | 查询命令 |
+|-------|---------|
+| CMD | `where bash` |
+| PowerShell | `Get-Command bash \| Select-Object -ExpandProperty Source` |
+| Git Bash | `which bash` |
+
+如果输出的第一条是 `%SystemRoot%\System32\bash.exe`（WSL 中继），说明 Git Bash 的 bash 不在 PATH 前面——
+那就往下取第二条，或直接改用上表的 `.py` 方案，最省事。
 
 **Claude Code hook 装了没反应**
 

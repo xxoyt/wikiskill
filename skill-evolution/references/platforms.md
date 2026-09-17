@@ -112,6 +112,25 @@ python .wiki/scripts/wiki_init.py "$(pwd -W)"
 
 不传参时通常没问题——Python 取自身 cwd，与 bash 一致。
 
+### `bash` 在哪，各机不同（不要照抄路径）
+
+手动跑 `.sh` 或写 hook 时，**不要照抄任何写死的 bash 路径**——Git 可能装在
+`C:\Program Files\Git`、`D:\Program Files\Git`、`%LOCALAPPDATA%\Programs\Git`（免管理员安装）
+或任意自选目录；系统盘也不一定是 `C:`。先查本机实际路径：
+
+| Shell | 查询命令 |
+|-------|---------|
+| CMD | `where bash` |
+| PowerShell | `Get-Command bash \| Select-Object -ExpandProperty Source` |
+| Git Bash | `which bash` |
+
+两个坑：
+
+- 输出第一条若是 `%SystemRoot%\System32\bash.exe`，那是 **WSL 中继**、不是 Git Bash；
+  往下取第二条，或直接改用 `.py` 入口（最省事）。
+- **代码里永远不要写死 bash 路径**。`scripts/install.py` 就是范例：Windows 上用探测到的
+  Python 解释器（`detect_python()`），其他平台才用 PATH 里的 `bash`——换机器不用改一行。
+
 ## WorkBuddy / CodeBuddy
 
 **配置方式**：直接使用本 SKILL.md，无需额外配置。

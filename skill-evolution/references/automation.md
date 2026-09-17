@@ -232,7 +232,7 @@ fi
 | 陷阱 | 表现 | 解法（均已实测） |
 |------|------|----------------|
 | **Claude Code 在 Windows 用 `.sh`** | hook 静默失效、无报错 | 必须用 `.py` 且写绝对路径；统一安装器已自动处理 |
-| **Windows 上裸 `bash xxx.sh`** | 命中 `C:\Windows\System32\bash.exe`（WSL 中继），无发行版时报 `execvpe(/bin/bash) failed` | 用 `.py`，或显式调用 `"C:\Program Files\Git\bin\bash.exe"` |
+| **Windows 上裸 `bash xxx.sh`** | 命中 `%SystemRoot%\System32\bash.exe`（WSL 中继），无发行版时报 `execvpe(/bin/bash) failed` | 用 `.py`，或显式调用 `"<Git 安装目录>\bin\bash.exe"`（**各机不同**，先 `where bash` 查实际路径） |
 | **Git Bash 的 POSIX 路径** | `/c/Users/x` 被 Windows Python 解析成 `C:\c\Users\x` | 用 `$(cygpath -w "<路径>")` 或项目内相对路径 |
 | **环境变量语法不通用** | cmd `%VAR%` / PowerShell `$env:VAR` / sh `$VAR` | Windows 用户级 hook 写死绝对路径，避开变量 |
 | **机器无 `python` 命令** | 老配置写死 `python` 时报错 | 安装器自动探测 `python`/`python3`/`py -3`；Linux/macOS 常只有 `python3`，手动命令需自行替换 |
