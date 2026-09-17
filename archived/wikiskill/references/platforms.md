@@ -72,18 +72,18 @@ python .wiki/scripts/wiki_init.py
 **表现 1 — `$HOME` 展开后找不到脚本**
 
 ```
-Git Bash 认为:   $HOME = /c/Users/Administrator
-传给 Python:     /c/Users/Administrator/.workbuddy/scripts/wiki_init.py
-Python 解析成:   C:\c\Users\Administrator\.workbuddy\...   ← 多了个 c\
+Git Bash 认为:   $HOME = /c/Users/xxx
+传给 Python:     /c/Users/xxx/.workbuddy/scripts/wiki_init.py
+Python 解析成:   C:\c\Users\xxx\.workbuddy\...   ← 多了个 c\
 ```
 
-报错：`can't open file 'C:\c\Users\Administrator\...'`
+报错：`can't open file 'C:\c\Users\xxx\...'`
 
 **表现 2 — 传路径参数后文件写丢**
 
 ```
-Git Bash:   /tmp/wpy  →  C:/Users/<你>/AppData/Local/Temp/wpy
-Win Python: /tmp/wpy  →  C:\tmp\wpy          ← 不是同一个地方
+Git Bash:   /tmp/demo  →  C:/Users/<你>/AppData/Local/Temp/demo
+Win Python: /tmp/demo  →  C:\tmp\demo          ← 不是同一个地方
 ```
 
 症状：脚本打印"初始化完成"，但 `find .wiki` 找不到目录。

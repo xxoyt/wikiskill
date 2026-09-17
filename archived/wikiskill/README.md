@@ -369,14 +369,14 @@ python .wiki/scripts/wiki_remind.py
 这是 Windows 上**最容易踩的坑**。Git Bash 的 `$HOME` 是 POSIX 格式，Windows 原生 Python 不认：
 
 ```
-Git Bash 认为:   $HOME = /c/Users/Administrator
-Windows Python:  /c/Users/Administrator/.workbuddy/...  →  C:\c\Users\Administrator\...  ❌
+Git Bash 认为:   $HOME = /c/Users/xxx
+Windows Python:  /c/Users/xxx/.workbuddy/...  →  C:\c\Users\xxx\...  ❌
 ```
 
 报错长这样：
 
 ```
-can't open file 'C:\c\Users\Administrator\.workbuddy\skills\wikiskill\scripts\wiki_init.py'
+can't open file 'C:\c\Users\xxx\.workbuddy\skills\wikiskill\scripts\wiki_init.py'
 ```
 
 三种解法，任选：
