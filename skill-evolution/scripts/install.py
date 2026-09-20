@@ -168,13 +168,13 @@ printf '# 技能演化日志\\n\\n（暂无记录）\\n' > .wiki/knowledge/evolu
 printf '# 提案影响追踪\\n\\n（暂无记录）\\n' > .wiki/knowledge/impact_tracker.md
 ```"""
 
-SELF_CONTAINED_REF = """- ① RSI 判据（什么才算真的变强）：`.wiki/references/rsi-framework.md`
-- ② 自改进设计（怎么落成闭环）：`.wiki/references/design-playbook.md`
-- ③ 经验沉淀工作流：`.wiki/references/workflow.md`
+SELF_CONTAINED_REF = """- 闭环全图与四问评分卡（权威源）：`.wiki/references/workflow.md`
+- ① 选域 / ⑦ 升阶（HCI、L1–L5）：`.wiki/references/rsi-framework.md`
+- 全链自改进设计五步：`.wiki/references/design-playbook.md`
 - 平台适配：`.wiki/references/platforms.md`
 - 自动化方案：`.wiki/references/automation.md`
 - 模板集合：`.wiki/references/templates.md`
-- 原论文：Google Research, arXiv:2608.27454（经验沉淀）；RSI 路线图, arXiv:2609.11873（判据与设计）"""
+- 原论文：WikiSkill, arXiv:2608.27454（经验怎么存、怎么迭代）；RSI 路线图, arXiv:2609.11873（改进算不算数、能自动到哪）"""
 
 
 def replace_section(text: str, start_marker: str, end_marker: str, new_body: str) -> str:
@@ -310,22 +310,18 @@ def remove_hook(settings_path: Path) -> str:
     except json.JSONDecodeError:
         return "错误：%s 不是合法 JSON，已中止。" % settings_path
 
-    stop = settings.get("hooks", {}).get("Stop", [])
-    kept = [g for g in stop
-            if not any(is_skill_evolution_command(h.get("command", ""))
-                       for h in (g.get("hooks", []) if isinstance(g, dict) else []))]
-
-    if len(kept) == len(stop):
+    existing = collect_skill_hooks(settings)
+    if not existing:
         return "跳过：未找到 Skill Evolution hook %s" % settings_path
 
-    settings["hooks"]["Stop"] = kept
-    if not kept:
-        settings["hooks"].pop("Stop", None)
-        if not settings["hooks"]:
-            settings.pop("hooks", None)
+    # 复用 strip_skill_hooks，而非按组删除：一个 Stop 组里可能同时含有本框架的
+    # hook 和用户自己的 hook（例如手工把两者放在一起）。按组删除会把用户自己的
+    # hook 一起干掉，且与升级路径（merge_hook）的行为不一致。
+    strip_skill_hooks(settings)
     settings_path.write_text(
         json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return "已移除 Skill Evolution hook，其余配置保持不变：%s" % settings_path
+    return ("已移除 %d 条 Skill Evolution hook（同组其他 hook 与其余配置保持不变）：%s"
+            % (len(existing), settings_path))
 
 
 def install_user_level(platform: str, scripts_src: Path, want_hook: bool) -> int:
@@ -423,7 +419,7 @@ def install(args) -> int:
         reason = "已用 --no-hook 指定" if args.no_hook else "平台无 hook 机制"
         print("[4/4] 跳过 hook 安装（%s）" % reason)
     else:
-        settings_path = target / ".claude" / "settings.json"
+        settings_path = target / spec["user_dir"] / "settings.json"
         print("[4/4] " + merge_hook(settings_path, remind_command(True, target)))
 
     print()
@@ -451,7 +447,7 @@ def uninstall(args) -> int:
             print("运行时目录仍保留：%s（如需彻底删除请手动移除）" % dest)
     else:
         target = Path(args.target).resolve() if args.target else Path.cwd()
-        settings_path = target / ".claude" / "settings.json"
+        settings_path = target / spec["user_dir"] / "settings.json"
         print(remove_hook(settings_path))
         print("已保留 .wiki/ 与 %s —— 经验数据不自动删除。" % (spec["instruction"] or "指令文件"))
     return 0

@@ -17,31 +17,45 @@
 └── meta/             # 配置信息
 ```
 
-## 工作流程
+## 工作流程（七步闭环）
 
-### 1. 执行任务时
+本框架把 WikiSkill 的经验存储机制与 RSI 的能力判据合成一条闭环：
+
+```
+①选域(HCI) → ②记录 → ③提炼 → ④提议 → ⑤门控(四问) → ⑥采纳/回滚 → ⑦升阶(L1-L5)
+```
+
+日常只需关注 ②③④，⑤ 必须人工。
+
+### ② 执行任务时
 在 `.wiki/raw/YYYY-MM-DD.md` 末尾追加轨迹：
 - 记录关键决策点和异常
 - 每条轨迹 ≤10 行
 - 标记结果：✅ 成功 / ❌ 失败 / ⚠️ 部分成功
 
-### 2. 复盘时（每 3-5 个任务后）
+### ③ 复盘时（每 3-5 个任务后）
 读取最近的轨迹，提炼模式到 `.wiki/knowledge/patterns.md`：
 - 失败模式（FM-xxx）：同一错误出现 ≥2 次
 - 成功策略（SS-xxx）：有效技巧在多个任务中验证
 
-### 3. 技能进化时（每 5-10 个任务后）
+### ④ 技能进化时（每 5-10 个任务后）
 基于 patterns 提出原子化改进：
-- 每次只改一个技能
+- 每次只改一个技能，frontmatter 必须带 `source_patterns`（无法追溯来源的不许入库）
 - 写入 `.wiki/skills/` 或修改现有技能
 - 在 `impact_tracker.md` 记录提案，待后续验证
 
+### ⑤ 门控（人工，不可自动）
+四问全过才采纳：**可衡量 / 可保持 / 可迁移 / 可回滚**。
+- **自评分不算证据**，必须在独立评估下复现
+- **「可回滚」一票否决**——没有「变更历史」的技能不许采纳，无论多有效
+
 ## 关键原则
 
-- **Wiki 永不重置**：知识层只增不减
-- **原子化改进**：每轮只改一个技能
-- **失败也是知识**：被拒绝的提案记录原因
-- **验证后才采纳**：所有变更必须经过门控
+- **角色隔离**：执行任务时**不要读** `.wiki/knowledge/` 或 `.wiki/skills/`（实测会降低技能质量）
+- **技能可回滚，Wiki 永不回滚**：知识层只增不减，失败原因必须留下
+- **原子化改进**：每轮只改一个技能，便于归因
+- **四问全过才采纳**：尤以「可回滚」为一票否决
+- **失败也是知识**：被拒绝的提案记录原因，成为下一轮输入
 
 ## 触发命令
 
@@ -105,12 +119,14 @@ printf '# 提案影响追踪\n\n（暂无记录）\n' > .wiki/knowledge/impact_t
 ## 参考
 
 <!-- REF_SECTION_START -->
-- ① RSI 判据（什么才算真的变强）：`.wiki/references/rsi-framework.md`
-- ② 自改进设计（怎么落成闭环）：`.wiki/references/design-playbook.md`
-- ③ 经验沉淀工作流：`.wiki/references/workflow.md`（项目内，若已随运行时复制）
+- 闭环全图与四问评分卡（权威源）：`.wiki/references/workflow.md`
+- ① 选域 / ⑦ 升阶（HCI、L1-L5）：`.wiki/references/rsi-framework.md`
+- 全链自改进设计五步：`.wiki/references/design-playbook.md`
+- 平台适配：`.wiki/references/platforms.md`
+- 自动化方案：`.wiki/references/automation.md`
 - 模板集合：`.wiki/references/templates.md`
 - 备选（需已安装 WorkBuddy）：`~/.workbuddy/skills/skill-evolution/references/`
-- 原论文：Google Research, arXiv:2608.27454（经验沉淀）；RSI 路线图, arXiv:2609.11873（判据与设计）
+- 原论文：WikiSkill, arXiv:2608.27454（经验怎么存、怎么迭代）；RSI 路线图, arXiv:2609.11873（改进算不算数、能自动到哪）
 <!-- REF_SECTION_END -->
 
 > 本文件已内联 Skill Evolution 的完整规则，可独立工作。若上述参考文件不可读，按本文件执行即可。

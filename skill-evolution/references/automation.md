@@ -36,7 +36,7 @@
 \* Codex 在 Windows 上依赖 Git for Windows 自带的 bash 运行 git hook。
 
 > **关于 CodeBuddy 的定时能力（2026-09-17 联网核实官方文档）**：WorkBuddy 的定时 automation
-> 是原生功能、**持久保存**、已验证可用。CodeBuddy 必须分形态看：
+> 是原生功能、**持久保存**（依官方文档，未在本仓库内实际跑过一轮完整周期）。CodeBuddy 必须分形态看：
 > - **CodeBuddy IDE / 插件**：**没有**定时任务功能（官方"定时任务"文档仅存在于 `/docs/cli/` 下）。
 > - **CodeBuddy Code（CLI）**：**有**，但是**会话级**的——只在 CLI 运行期间有效、
 >   **退出即清除且不写盘**、循环任务 **3 天后自动过期**、中断期间错过的任务**不补跑**
@@ -88,7 +88,7 @@
 - 注意角色隔离：这是离线维护任务，与日常任务执行分离
 ```
 
-### 模板 B：仅 RSI 体检（模块①）
+### 模板 B：仅 RSI 体检（选域 ① + 升阶 ⑦）
 
 ```
 参考 skill-evolution skill 的 references/rsi-framework.md
@@ -101,12 +101,12 @@
 
 约束：
 - 本模块是只读知识底座，不要改动它；也不修改项目代码
-- 只做诊断与候选生成；如需落地，转模块②设计、模块③沉淀
+- 只做诊断与候选生成；如需落地，转 ②③④ 记录-提炼-提议，再走 ⑤ 门控
 - 本任务唯一的写操作：把结论追加到 .wiki/raw/<当天日期>.md
   （若 .wiki/ 不存在则跳过并说明，不要自动创建）
 ```
 
-### 模板 C：仅自改进设计（模块②）
+### 模板 C：仅自改进设计（全链设计）
 
 ```
 参考 skill-evolution skill 的 references/design-playbook.md
@@ -179,6 +179,10 @@
 > 相对路径要求 `.wiki/scripts/` 已存在（先跑 `install.py` 或手动复制）。
 > 用户级配置若要用绝对路径，需把命令里的脚本路径改为
 > `~/.claude/scripts/skill-evolution/wiki_remind.*`（用 `install.py --user` 会自动装好）。
+>
+> **模板里的 `python` 是写死的**：若你的机器只有 `python3` 或 `py -3`（Windows 上很常见），
+> 手抄模板时必须把命令里的 `python` 换成实际可用的那个，否则 hook 会静默失效。
+> `install.py` 会自动探测（`python` → `python3` → `py -3`），省去这一步。
 
 **为什么 Windows 用户级用绝对路径而非 `%USERPROFILE%`**：环境变量语法在不同 shell 下不通用——
 cmd 用 `%USERPROFILE%`，PowerShell 用 `$env:USERPROFILE`，sh 用 `$HOME`。Claude Code
@@ -268,21 +272,21 @@ fi
 
 ---
 
-## 三模块联合自动化（一锅端）
+## 全链联合自动化（一锅端）
 
-本 skill 的三个模块可打包进**同一个**跨平台自动化，实现"免手动、跨 OS"的自改进循环：
+本 skill 的七步闭环可打包进**同一个**跨平台自动化，实现"免手动、跨 OS"的自改进循环：
 
 ```
 ① 读 references/rsi-framework.md          → 概念底座（只读）
 ② 用 references/design-playbook.md 设计闭环 → 产出方案（不写文件）
-③ 交给模块③沉淀到 .wiki/                   → 唯一写盘方（可回滚）
+②③④⑥ 交给经验沉淀层写 .wiki/            → 唯一写盘方（可回滚）
 ④ 人工门控验证（L4）                        → 任何平台都不自动
 ```
 
 **统一编排 prompt 模板（WorkBuddy 定时 automation 直接可用；CodeBuddy headless、Claude Code/Codex 亦可用作周期任务 prompt）**：
 
 ```
-执行一次"自改进闭环"周期维护，串联 skill-evolution 的三个模块：
+按 skill-evolution 的七步闭环执行一轮周期维护（①选域 → ②记录 → ③提炼 → ④提议 → ⑤门控 → ⑥采纳/回滚 → ⑦升阶）：
 
 1. 读 skill-evolution skill 的 references/rsi-framework.md
    （该 skill 的安装目录，WorkBuddy 下为 ~/.workbuddy/skills/skill-evolution），
@@ -290,7 +294,7 @@ fi
 2. 用同目录 references/design-playbook.md，
    定位当前项目的自改进成熟度，选一个反馈廉价、验证明确、部署短的切口套四步闭环，
    产出一份原子化自改进方案
-3. 把可固化的经验/技能交给模块③沉淀：写入 .wiki/skills/（带 frontmatter 与变更历史），
+3. 把可固化的经验/技能沉淀进 .wiki/skills/（带 frontmatter 与变更历史），
    在 .wiki/knowledge/impact_tracker.md 标记"待验证"，并向 .wiki/raw/ 追加当天轨迹
 
 约束：
