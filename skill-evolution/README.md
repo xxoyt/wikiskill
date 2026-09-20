@@ -852,7 +852,8 @@ skill-evolution/
 │   ├── wiki_init.sh              # 初始化 .wiki/（Unix）
 │   ├── wiki_init.ps1             # 初始化 .wiki/（Windows PowerShell）
 │   ├── wiki_remind.py            # Stop hook 提醒（全平台，Windows 必用）
-│   └── wiki_remind.sh            # Stop hook 提醒（Unix）
+│   ├── wiki_remind.sh            # Stop hook 提醒（Unix）
+│   └── selfcheck.py              # 包体自检（只读；改动后 / 分发前跑一次）
 ├── references/
 │   ├── rsi-framework.md          # RSI 判据：概念 / 度量 / L1–L5 / 四大追问（闭环 ①⑦）
 │   ├── design-playbook.md        # 自改进设计：五步工作流（供闭环 ④ 产出方案）
