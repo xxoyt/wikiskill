@@ -870,6 +870,22 @@ skill-evolution/
 
 `SKILL.md` 给 Agent 读，`README.md` 给人读。
 
+### 包体自检（改动后 / 分发前跑一次）
+
+```bash
+python scripts/selfcheck.py                        # 只检本包
+python scripts/selfcheck.py --copy <副本目录>       # 顺带比对副本哈希，可重复指定
+```
+
+**只读**，不修改任何文件；发现异常时退出码为 1，可直接接进 CI 或提交前检查。
+
+覆盖 10 类问题：身份契约（`name` 不可改）、必备文件齐全、圈码编号一致性（闭环语义，
+排除了 `L4 门控验证` 这类同形误报）、Markdown 代码围栏闭合、README 内部锚点与目录树一致性、
+换行符统一、打包垃圾（`__pycache__` / `.pyc`）、本机路径泄漏、跨副本哈希一致。
+
+> 前 5 类都是**改文档时容易悄悄改坏**的地方（编号体系、围栏截断、树与磁盘脱节），
+> 人工评审很难逐条盯住——这正是它存在的理由。
+
 > **关于 `install_claude_hook.py`**：该脚本在 `wikiskill` + `rsi-knowledge` +
 > `rsi-self-improvement-designer` 三合一为 `skill-evolution` 时**已被移除**（它硬编码了
 > WorkBuddy 私有目录，属于已知会静默失效的历史实现）。统一安装器 `install.py` 覆盖其全部功能。
