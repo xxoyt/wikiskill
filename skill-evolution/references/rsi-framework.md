@@ -1,5 +1,6 @@
 # RSI 完整参考（Recursive Self-Improvement）
 
+> 本文档是「技能进化（知行环）」（`skill-evolution`）的参考文档之一，对应闭环的 **① 选域 / ⑦ 升阶**。
 > 来源：*The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement*，arXiv:2609.11873（v1 2026-09-10 / v2 2026-09-15），项目主页 https://theseus-labs-rsi.github.io/
 > 分析基础：393 组模型-基准观测、10 大能力领域（2023-09 至 2026-09）
 > 注：论文公开页仅标注通讯作者（Xuanhe Zhou），未列全部作者机构；正文第 5 节以工业案例形式讨论 Theseus、Lark、小红书、Humanlaya、面壁智能（ModelBest）、腾讯混元等。"72 家公司/团队"不见于正文，已移除。

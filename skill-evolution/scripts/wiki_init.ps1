@@ -1,4 +1,4 @@
-﻿# Skill Evolution — 初始化 .wiki 目录结构（Windows PowerShell 原生版）
+﻿# 技能进化（知行环）— 初始化 .wiki 目录结构（Windows PowerShell 原生版）
 #
 # 用法:
 #   powershell -ExecutionPolicy Bypass -File wiki_init.ps1
@@ -17,7 +17,7 @@ $ErrorActionPreference = "Stop"
 $wiki = Join-Path $Root ".wiki"
 
 if (Test-Path -LiteralPath $wiki) {
-    Write-Host "[Skill Evolution] .wiki 目录已存在: $wiki"
+    Write-Host "[技能进化] .wiki 目录已存在: $wiki"
     exit 0
 }
 
@@ -82,7 +82,7 @@ foreach ($key in $files.Keys) {
     [System.IO.File]::WriteAllText($path, $files[$key], $utf8NoBom)
 }
 
-Write-Host "[Skill Evolution] 初始化完成: $wiki"
+Write-Host "[技能进化] 初始化完成: $wiki"
 Write-Host "   raw/        - 执行轨迹（按日期追加）"
 Write-Host "   knowledge/  - 持久化知识（patterns + evolution_log + impact_tracker）"
 Write-Host "   skills/     - 可复用技能（可回滚）"

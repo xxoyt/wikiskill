@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Skill Evolution — 初始化 .wiki 目录结构（跨平台版）
+技能进化（知行环）— 初始化 .wiki 目录结构（跨平台版）
 
 用法:
     python wiki_init.py [项目根目录]
@@ -58,7 +58,7 @@ def main() -> int:
     wiki = os.path.join(root, ".wiki")
 
     if os.path.isdir(wiki):
-        print("[Skill Evolution] .wiki 目录已存在: %s" % wiki)
+        print("[技能进化] .wiki 目录已存在: %s" % wiki)
         return 0
 
     for d in EMPTY_DIRS:
@@ -72,7 +72,7 @@ def main() -> int:
         with open(path, "w", encoding="utf-8", newline="\n") as f:
             f.write(content.format(date=date.today().isoformat()))
 
-    print("[Skill Evolution] 初始化完成: %s" % wiki)
+    print("[技能进化] 初始化完成: %s" % wiki)
     print("   raw/        - 执行轨迹（按日期追加）")
     print("   knowledge/  - 持久化知识（patterns + evolution_log + impact_tracker）")
     print("   skills/     - 可复用技能（可回滚）")

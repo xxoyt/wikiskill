@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Skill Evolution — 统一安装器（跨平台 / 跨 AI 工具）
+技能进化（知行环）· Skill Evolution — 统一安装器（跨平台 / 跨 AI 工具）
 
 设计原则：项目自包含。
 
-Skill Evolution 不依赖任何 AI 工具的私有目录。安装时把运行时脚本与参考文档
+技能进化（知行环）不依赖任何 AI 工具的私有目录。安装时把运行时脚本与参考文档
 复制进项目内的 .wiki/，生成的指令文件与 hook 全部使用项目内路径。
 因此项目可以整体提交 Git，换机器 clone 后无需重新安装即可工作。
 
@@ -63,13 +63,13 @@ REFERENCE_FILES = ["workflow.md", "platforms.md", "automation.md", "templates.md
 PLATFORM_SPECS = {
     "claude": {
         "instruction": "CLAUDE.md",
-        "template": "CLAUDE.md.template",
+        "template": "CLAUDE.template.md",
         "user_dir": ".claude",
         "supports_hook": True,
     },
     "codex": {
         "instruction": "AGENTS.md",
-        "template": "AGENTS.md.template",
+        "template": "AGENTS.template.md",
         "user_dir": ".codex",
         "supports_hook": False,
     },
@@ -157,7 +157,7 @@ python .wiki\\scripts\\wiki_init.py
 powershell -ExecutionPolicy Bypass -File .wiki\\scripts\\wiki_init.ps1
 ```
 
-> 本项目已自包含 Skill Evolution 运行时，`.wiki/scripts/` 下的脚本可直接执行。
+> 本项目已自包含「技能进化（知行环）」运行时，`.wiki/scripts/` 下的脚本可直接执行。
 > 不依赖 WorkBuddy / Claude Code / Codex 的任何全局目录。
 
 **方式 B — 手动创建**（脚本不可用时直接执行）：
@@ -217,7 +217,7 @@ def remind_command(project_level: bool, project_root: Path, user_script: Path = 
 
 
 def is_skill_evolution_command(command: str) -> bool:
-    """判断一条 hook 命令是否属于 Skill Evolution。"""
+    """判断一条 hook 命令是否属于技能进化（知行环）。"""
     low = command.lower()
     return any(m in low for m in HOOK_MARKERS)
 
@@ -312,7 +312,7 @@ def remove_hook(settings_path: Path) -> str:
 
     existing = collect_skill_hooks(settings)
     if not existing:
-        return "跳过：未找到 Skill Evolution hook %s" % settings_path
+        return "跳过：未找到技能进化（知行环）的 hook %s" % settings_path
 
     # 复用 strip_skill_hooks，而非按组删除：一个 Stop 组里可能同时含有本框架的
     # hook 和用户自己的 hook（例如手工把两者放在一起）。按组删除会把用户自己的
@@ -320,7 +320,7 @@ def remove_hook(settings_path: Path) -> str:
     strip_skill_hooks(settings)
     settings_path.write_text(
         json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return ("已移除 %d 条 Skill Evolution hook（同组其他 hook 与其余配置保持不变）：%s"
+    return ("已移除 %d 条技能进化（知行环）hook（同组其他 hook 与其余配置保持不变）：%s"
             % (len(existing), settings_path))
 
 
@@ -389,7 +389,7 @@ def install(args) -> int:
         print("[错误] 目标目录不存在：%s" % target)
         return 1
 
-    print("=== Skill Evolution 安装（项目级 · 自包含）===")
+    print("=== 技能进化（知行环）安装（项目级 · 自包含）===")
     print("目标项目：%s" % target)
     print()
 
@@ -437,7 +437,7 @@ def install(args) -> int:
 
 def uninstall(args) -> int:
     spec = PLATFORM_SPECS[args.platform]
-    print("=== Skill Evolution 卸载 ===")
+    print("=== 技能进化（知行环）卸载 ===")
 
     if args.user:
         settings_path = Path.home() / spec["user_dir"] / "settings.json"
@@ -455,7 +455,7 @@ def uninstall(args) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(
-        description="Skill Evolution 统一安装器（项目自包含，不依赖 WorkBuddy）")
+        description="技能进化（知行环）统一安装器（项目自包含，不依赖 WorkBuddy）")
     p.add_argument("--platform", choices=sorted(PLATFORM_SPECS), default="claude",
                    help="目标 AI 工具，默认 claude")
     p.add_argument("--target", help="项目目录，默认当前目录")

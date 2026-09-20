@@ -1,6 +1,6 @@
 # 跨平台适配指南
 
-Skill Evolution 的核心是 `.wiki/` 目录结构和 Markdown 文件格式，与具体 Agent 平台无关。本文档说明如何在不同平台上使用。
+技能进化（知行环）的核心是 `.wiki/` 目录结构和 Markdown 文件格式，与具体 Agent 平台无关。本文档说明如何在不同平台上使用。
 
 ## 通用原则
 
@@ -167,7 +167,7 @@ python <skill目录>/scripts/install.py --platform claude --target <项目目录
 
 1. 复制模板文件到项目根目录：
    ```bash
-   cp "<skill目录>/references/CLAUDE.md.template" CLAUDE.md
+   cp "<skill目录>/references/CLAUDE.template.md" CLAUDE.md
    ```
 
 2. 编辑 `CLAUDE.md`，按需调整：
@@ -196,7 +196,7 @@ python <skill目录>/scripts/install.py --platform claude --target <项目目录
 
 **注意事项**：
 - Claude Code 没有内置的 skill 触发机制，需要手动提醒或使用约定命令
-- 建议在项目 README 中说明 Skill Evolution 的使用方式
+- 建议在项目 README 中说明技能进化（知行环）的使用方式
 
 ## Codex (OpenAI)
 
@@ -212,7 +212,7 @@ python <skill目录>/scripts/install.py --platform codex --target <项目目录>
 
 1. 复制模板文件到项目根目录：
    ```bash
-   cp "<skill目录>/references/AGENTS.md.template" AGENTS.md
+   cp "<skill目录>/references/AGENTS.template.md" AGENTS.md
    ```
 
 2. 编辑 `AGENTS.md`，按需调整：

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Skill Evolution — Claude Code Stop Hook 提醒脚本
+# 技能进化（知行环）— Claude Code Stop Hook 提醒脚本
 # 在 Agent 完成响应时触发，若项目存在 .wiki/ 则输出记录提醒。
 # 注意：本脚本只输出提醒文本，不代替 Agent 判断或写入内容。
 
@@ -22,7 +22,7 @@ fi
 RAW_FILE="$PROJECT_DIR/.wiki/raw/$(date +%Y-%m-%d).md"
 
 cat <<EOF
-[Skill Evolution] 会话结束前检查：本次任务是否有值得记录的经验？
+[技能进化] 会话结束前检查：本次任务是否有值得记录的经验？
 
 若有（踩坑、失败、或有效的解决技巧），追加到：
   $RAW_FILE

@@ -1,6 +1,6 @@
-# Claude Code Skill Evolution 配置
+# Codex · 技能进化（知行环）配置
 
-本项目使用 Skill Evolution 框架进行经验积累与技能进化。
+本项目使用「技能进化」（别号「知行环」，英文 id `skill-evolution`）框架进行经验积累与技能进化。
 
 ## Wiki 结构
 
@@ -59,6 +59,7 @@
 
 ## 触发命令
 
+- "技能进化" / "知行环" → 报出技能名即唤醒，确认当前处于哪一步
 - "记录轨迹" / "wiki log" → 追加当前任务轨迹
 - "复盘" / "wiki maintain" → 提炼 patterns
 - "进化技能" / "wiki evolve" → 提出并验证技能改进
@@ -129,4 +130,4 @@ printf '# 提案影响追踪\n\n（暂无记录）\n' > .wiki/knowledge/impact_t
 - 原论文：WikiSkill, arXiv:2608.27454（经验怎么存、怎么迭代）；RSI 路线图, arXiv:2609.11873（改进算不算数、能自动到哪）
 <!-- REF_SECTION_END -->
 
-> 本文件已内联 Skill Evolution 的完整规则，可独立工作。若上述参考文件不可读，按本文件执行即可。
+> 本文件已内联技能进化（知行环）的完整规则，可独立工作。若上述参考文件不可读，按本文件执行即可。

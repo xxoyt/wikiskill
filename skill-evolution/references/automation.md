@@ -1,4 +1,4 @@
-# Skill Evolution 自动化运行指南
+# 技能进化（知行环）· 自动化运行指南
 
 > 本文件由原 `wikiskill`、`rsi-knowledge`、`rsi-self-improvement-designer` 三份 automation.md
 > **合并而成**——三模块现在同属一个 skill，所有 prompt 都在这里，不再有跨 skill 指针。
@@ -207,7 +207,7 @@ python "<skill目录>/scripts/install.py" --platform codex --target <项目目�
 ```bash
 #!/bin/bash
 if [ -d ".wiki" ]; then
-  echo "[Skill Evolution] 本次提交若有值得沉淀的经验，先说一句「记录轨迹」"
+  echo "[技能进化] 本次提交若有值得沉淀的经验，先说一句「记录轨迹」"
 fi
 ```
 
@@ -223,7 +223,7 @@ fi
 #!/bin/bash
 # 提交后提醒记录轨迹
 if [ -d ".wiki" ]; then
-  echo "[Skill Evolution] 本次提交若有值得记录的踩坑或技巧，请追加到 .wiki/raw/$(date +%Y-%m-%d).md"
+  echo "[技能进化] 本次提交若有值得记录的踩坑或技巧，请追加到 .wiki/raw/$(date +%Y-%m-%d).md"
 fi
 ```
 

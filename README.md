@@ -1,11 +1,14 @@
-# Agent 自改进 Skill
+# Agent 自改进 Skill —— 技能进化（知行环）
+
+> 中文名 **技能进化**（别号 **知行环**：知＝判据、行＝沉淀、环＝闭环）；
+> 英文 id `skill-evolution` 保持不变——目录名、`.wiki/` 运行时、hook 都依赖它。
 
 一个围绕 **AI 自我改进（RSI / Recursive Self-Improvement）** 与 **Agent 经验积累** 的 Skill。
 
 目标：让 AI 不再靠人类一遍遍手把手调参，而是形成「试错 → 验证 → 沉淀经验 → 改进自己」的闭环，
 并在 **不同电脑、不同 agent（WorkBuddy / CodeBuddy / Claude Code / Codex）** 下都能复用。
 
-本仓库是 Skill 的**组织与分发**集合；实际使用时把 `skill-evolution/` 安装或复制到 agent 的 skills 目录即可。
+本仓库是 Skill 的**组织与分发**集合；实际使用时把 `skill-evolution/`（技能进化 · 知行环）安装或复制到 agent 的 skills 目录即可。
 
 > **2026-09-17 更新 —— 三个 skill 已三合一；随后按两篇论文重构成单一闭环（v2.0）。**
 > 原先独立的 `rsi-knowledge` + `rsi-self-improvement-designer` + `wikiskill` 已合并为单一 skill
@@ -88,7 +91,7 @@ WikiSkill 论文的消融实验证明，执行代理一旦能访问知识库，�
 ### ②③④⑤⑥ 经验沉淀 —— WikiSkill 那一半
 - **是什么**：`.wiki/` 三层架构（Raw → Wiki → Skill）+ 四问门控 + 双轨回滚，跨平台通用。
 - **何时用**：让 Agent 从历史任务学习、避免重复踩坑、沉淀可复用技能。
-- **触发词**：`记录轨迹` / `复盘` / `进化技能` / `wiki 状态` / `初始化 wiki`
+- **触发词**：`技能进化` / `知行环` / `记录轨迹` / `复盘` / `进化技能` / `wiki 状态` / `初始化 wiki`
 - **详版**：[skill-evolution/README.md](./skill-evolution/README.md)
 
 Agent 入口：[skill-evolution/SKILL.md](./skill-evolution/SKILL.md)
@@ -100,7 +103,7 @@ Agent 入口：[skill-evolution/SKILL.md](./skill-evolution/SKILL.md)
 ```
 2026-08-31-10-22-01/                # 本集合仓库
 ├── README.md                       # 本文件（集合索引）
-├── skill-evolution/                # 唯一在用的 Skill（一个文件夹）
+├── skill-evolution/                # 技能进化（知行环）——唯一在用的 Skill
 │   ├── SKILL.md                    # Agent 读的主文档（七步闭环 + 四问评分卡 + 角色隔离）
 │   ├── README.md                   # 人类可读说明（含迁移指引与操作手册）
 │   ├── scripts/                    # 统一安装器 + 初始化 / hook 脚本（跨平台）
@@ -114,7 +117,7 @@ Agent 入口：[skill-evolution/SKILL.md](./skill-evolution/SKILL.md)
 │   │   ├── platforms.md            # 跨平台适配
 │   │   ├── automation.md           # 自动化方案 + prompt 模板（含全链联合编排）
 │   │   ├── templates.md            # Markdown 模板集合
-│   │   └── CLAUDE.md.template / AGENTS.md.template
+│   │   └── CLAUDE.template.md / AGENTS.template.md   # 扩展名必须 .md 结尾（提交技能库要求）
 │   └── assets/hooks/               # hook 手动配置模板
 ├── skill-evolution.zip             # 分发压缩包（同上结构）
 ├── archived/                       # 三合一之前的旧 skill（保留追溯，不再维护）
@@ -125,6 +128,9 @@ Agent 入口：[skill-evolution/SKILL.md](./skill-evolution/SKILL.md)
 ├── test_integration_smoke.py       # 集成冒烟测试
 └── test_triage_state.py            # 状态机测试
 ```
+
+> **扩展名约束（提交技能库前必读）**：打包/提交时只接受常见扩展名——`.md` / `.py` / `.sh` / `.ps1` / `.json`。
+> 指令模板因此命名为 `CLAUDE.template.md`（而不是 `CLAUDE.md.template`），否则会报「不允许的文件类型」。
 
 > `SKILL.md` 给 Agent 读，`README.md` 给人读，`references/` 放详版资料。
 > 分发时直接压缩对应文件夹即可（见 `*.zip`）。

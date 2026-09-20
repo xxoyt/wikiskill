@@ -1,11 +1,12 @@
 ---
 name: skill-evolution
-description: Agent 经验沉淀与技能进化框架——把 WikiSkill（arXiv:2608.27454）的经验存储机制与 RSI 路线图（arXiv:2609.11873）的能力判据合成为一条可运行闭环：HCI 选域 → 三层记忆沉淀 → 原子化提议 → 四大追问门控 → 可回滚迭代 → 自主权升阶。支持 WorkBuddy / CodeBuddy / Claude Code / Codex 四平台与 Windows / Linux / macOS。当用户要求经验复盘、记录轨迹、技能进化、能力评估、自改进闭环设计、自主性分级，或引用 RSI / HCI / WikiSkill 相关概念时触发。
+display_name: 技能进化（知行环）
+description: 技能进化（知行环，英文 id `skill-evolution`）——Agent 经验沉淀与自改进闭环框架，把 WikiSkill（arXiv:2608.27454）的经验存储机制与 RSI 路线图（arXiv:2609.11873）的能力判据合成为一条可运行闭环：HCI 选域 → 三层记忆沉淀 → 原子化提议 → 四大追问门控 → 可回滚迭代 → 自主权升阶。支持 WorkBuddy / CodeBuddy / Claude Code / Codex 四平台与 Windows / Linux / macOS。当用户报出「技能进化」或别号「知行环」，或要求经验复盘、记录轨迹、能力评估、自改进闭环设计、自主性分级，或引用 RSI / HCI / WikiSkill 相关概念时触发。
 version: 2.0.0
 agent_created: true
 ---
 
-# Skill Evolution — 两篇论文合成的一条闭环
+# 技能进化（知行环）· Skill Evolution — 两篇论文合成的一条闭环
 
 不改模型权重，让 Agent 自己维护一本经验 Wiki，把成败提炼为可复用技能，用判据门控安全迭代。
 
@@ -296,6 +297,7 @@ RSI 的四大追问补上了"这个改进到底算不算数"的判据。**两者
 
 | 触发词 | 对应闭环步骤 | 动作 | 主导角色 |
 |--------|:-----------:|------|---------|
+| "技能进化" / "知行环" | 全链 | 报出技能名即唤醒：载入本 skill，确认当前处于哪一步 | 任一 |
 | "记录轨迹" / "wiki log" | ② | 追加当前任务轨迹到 `raw/` | Inference Agent |
 | "复盘" / "wiki maintain" | ③ | 提炼 `patterns.md` | Wiki Maintainer |
 | "进化技能" / "wiki evolve" | ④⑤⑥ | 提出技能改进并走四问门控 | Skill Proposer |
@@ -315,8 +317,8 @@ RSI 的四大追问补上了"这个改进到底算不算数"的判据。**两者
 |------|-------------|:------:|:-----:|:-----:|
 | WorkBuddy | 定时 automation（平台原生、持久保存）；触发词自动识别 | ✅ | ✅ | ✅ |
 | CodeBuddy | **IDE / 插件无定时任务**；CodeBuddy Code（CLI）的定时为**会话级**（退出即清除、3 天过期、中断不补跑），持久周期需 **headless + 外部调度器** | ✅ | ✅ | ✅ |
-| Claude Code | `CLAUDE.md` 常驻指令（用 `references/CLAUDE.md.template`）+ Stop hook 提醒 | ✅ | ✅ | ✅ |
-| Codex | `AGENTS.md` 常驻指令（用 `references/AGENTS.md.template`）+ git `post-commit` 提醒 | ✅* | ✅ | ✅ |
+| Claude Code | `CLAUDE.md` 常驻指令（用 `references/CLAUDE.template.md`）+ Stop hook 提醒 | ✅ | ✅ | ✅ |
+| Codex | `AGENTS.md` 常驻指令（用 `references/AGENTS.template.md`）+ git `post-commit` 提醒 | ✅* | ✅ | ✅ |
 
 \* Codex 在 Windows 上依赖 Git for Windows 自带的 bash 运行 git hook。
 

@@ -1,4 +1,9 @@
-# Skill Evolution
+# 技能进化（知行环）· Skill Evolution
+
+> **名字的由来**：主名「**技能进化**」对外使用——它说的是"对象与方向"（技能在往上走）；
+> 别号「**知行环**」用于口语指代——它说的是"机制与结构"（知＝判据、行＝沉淀、环＝闭环）。
+> 两个名字合起来才是完整的：**技能进化 = 知行环**。
+> 英文 id 保持 `skill-evolution` 不变（目录名、`.wiki/` 运行时、hook 都依赖它，改名会破坏已有项目）。
 
 > **两篇论文合成的一条闭环**，不是三个模块的集合。
 > WikiSkill 给机制（经验**怎么存、怎么迭代**），RSI 路线图给判据（改进**算不算数、能自动到哪**）。
@@ -177,10 +182,10 @@ python scripts/install.py --platform claude --user
 
    ```bash
    # Windows (PowerShell)
-   Copy-Item "解压目录\references\CLAUDE.md.template" CLAUDE.md
+   Copy-Item "解压目录\references\CLAUDE.template.md" CLAUDE.md
 
    # Unix
-   cp "解压目录/references/CLAUDE.md.template" CLAUDE.md
+   cp "解压目录/references/CLAUDE.template.md" CLAUDE.md
    ```
 
 2. 初始化 Wiki（按你的 shell 选一行）：
@@ -216,17 +221,17 @@ python scripts/install.py --platform codex --target <你的项目目录>
 
 Codex 没有 hook 机制，因此只生成 `AGENTS.md` 和 `.wiki/`，不写任何配置文件。
 
-手动方式同上，把 `AGENTS.md.template` 复制为项目根目录的 `AGENTS.md`：
+手动方式同上，把 `AGENTS.template.md` 复制为项目根目录的 `AGENTS.md`：
 
 ```powershell
 # Windows PowerShell
-Copy-Item "解压目录\references\AGENTS.md.template" AGENTS.md
+Copy-Item "解压目录\references\AGENTS.template.md" AGENTS.md
 python "解压目录\scripts\wiki_init.py"
 ```
 
 ```bash
 # Linux / macOS / Git Bash
-cp "解压目录/references/AGENTS.md.template" AGENTS.md
+cp "解压目录/references/AGENTS.template.md" AGENTS.md
 bash "解压目录/scripts/wiki_init.sh"
 ```
 
@@ -285,7 +290,7 @@ python ~/.workbuddy/skills/skill-evolution/scripts/install.py --platform claude 
 
 重复执行是幂等的——第二次会输出"已存在相同命令的 hook"并跳过。
 
-> 整合**之前**的版本会直接输出"已存在 Skill Evolution hook"然后跳过，
+> 整合**之前**的版本会直接输出"已存在 Skill Evolution hook"（旧版英文品牌名）然后跳过，
 > 导致新运行时永远装不上。该缺陷已修复；若你用的是旧版 `install.py`，请先更新。
 
 ### 已有项目的 `.wiki/` 怎么处理——不用迁移
@@ -317,7 +322,7 @@ python <skill目录>/scripts/install.py --platform claude --target <项目目录
 > 去掉这个参数。
 
 刷新后若想让 Agent 在 Claude Code / Codex 里**常驻知道** `.wiki/` 存在，把
-`references/CLAUDE.md.template` 的内容追加到项目 `CLAUDE.md` / `AGENTS.md` 末尾即可
+`references/CLAUDE.template.md` 的内容追加到项目 `CLAUDE.md` / `AGENTS.md` 末尾即可
 （模板只含 wiki 规则，直接追加不影响你原有内容）。
 
 ### 交给 AI 执行（推荐）
@@ -382,6 +387,7 @@ rsi-self-improvement-designer 三个独立 skill，现在它们已三合一为 s
 
 | 你说 | Agent 做什么 |
 |------|-------------|
+| `技能进化` / `知行环` | 报出技能名即唤醒，载入本 skill 并确认当前意图 |
 | `记录轨迹` / `wiki log` | 把当前任务的轨迹追加到 `.wiki/raw/今天.md` |
 | `复盘` / `wiki maintain` | 读近期轨迹，提炼失败模式与成功策略 |
 | `进化技能` / `wiki evolve` | 提出一个技能改进并验证 |
@@ -588,7 +594,7 @@ Codex **没有 hook 机制**，安装器只生成自包含的 `AGENTS.md` 和 `.
 ```bash
 #!/bin/bash
 if [ -d ".wiki" ]; then
-  echo "[Skill Evolution] 本次提交若有值得沉淀的经验，先说一句「记录轨迹」"
+  echo "[技能进化] 本次提交若有值得沉淀的经验，先说一句「记录轨迹」"
 fi
 ```
 
@@ -854,8 +860,8 @@ skill-evolution/
 │   ├── platforms.md              # 跨平台适配指南
 │   ├── automation.md             # 自动化方案 + prompt 模板（含全链联合编排）
 │   ├── templates.md              # Markdown 模板集合
-│   ├── CLAUDE.md.template        # Claude Code 配置模板
-│   └── AGENTS.md.template        # Codex 配置模板
+│   ├── CLAUDE.template.md        # Claude Code 配置模板
+│   └── AGENTS.template.md        # Codex 配置模板
 └── assets/hooks/
     ├── claude-code-settings.json          # hook 手动配置模板（Unix）
     └── claude-code-settings.windows.json  # hook 手动配置模板（Windows）

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Skill Evolution — 初始化 .wiki 目录结构
+# 技能进化（知行环）— 初始化 .wiki 目录结构
 # 用法: bash scripts/wiki_init.sh [项目根目录]
 
 ROOT="${1:-.}"
@@ -62,7 +62,7 @@ cat > "$WIKI/meta/config.md" << EOF
 - **轨迹格式**：精简模式（每条 ≤10 行）
 EOF
 
-echo "✅ Skill Evolution 初始化完成: $WIKI"
+echo "✅ 技能进化（知行环）初始化完成: $WIKI"
 echo "   raw/        — 执行轨迹（按日期追加）"
 echo "   knowledge/  — 持久化知识（patterns + evolution_log + impact_tracker）"
 echo "   skills/     — 可复用技能（可回滚）"
