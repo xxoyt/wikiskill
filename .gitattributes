@@ -1,0 +1,7 @@
+# 统一换行符为 LF。
+# 本 skill 面向 Windows / macOS / Linux 分发，若按平台自动转换换行，
+# 克隆后与源包内容不再逐字节一致，会污染副本哈希比对与 zip 分发校验。
+* text=auto eol=lf
+
+# 二进制文件不做任何转换
+*.zip binary

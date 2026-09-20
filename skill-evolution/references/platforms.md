@@ -136,9 +136,9 @@ python .wiki/scripts/wiki_init.py "$(pwd -W)"
 **配置方式**：直接使用本 SKILL.md，无需额外配置。
 
 **触发命令**：
-- "记录轨迹" / "wiki log" → 执行 Step 1
-- "复盘" / "wiki maintain" → 执行 Step 2
-- "进化技能" / "wiki evolve" → 执行 Step 3+4
+- "记录轨迹" / "wiki log" → 闭环 ② 记录
+- "复盘" / "wiki maintain" → 闭环 ③ 提炼
+- "进化技能" / "wiki evolve" → 闭环 ④ 提议 + ⑤ 门控
 - "wiki 状态" / "wiki status" → 展示统计
 
 **优势**：
