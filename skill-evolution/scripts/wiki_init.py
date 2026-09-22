@@ -110,7 +110,7 @@ def with_retry(fn):
     raise last
 
 
-def explain(exc: Exception, path: str) -> str:
+def explain_error(exc: Exception, path: str) -> str:
     """把系统异常翻译成「人话 + 怎么办」，最多 3 步。"""
     kind = type(exc).__name__
     if isinstance(exc, PermissionError):
@@ -124,6 +124,8 @@ def explain(exc: Exception, path: str) -> str:
     if isinstance(exc, FileNotFoundError):
         return (
             "路径不存在（多半是没站在项目根目录，或上级目录已被删除）。\n"
+            "     注意：Windows 在「路径中间某段是普通文件」时也会误报为路径不存在，\n"
+            "           若该路径其实存在，请检查沿途各段有没有被同名文件占位。\n"
             "     怎么办：\n"
             "       1. 先 cd 到项目根目录再执行；\n"
             "       2. 或直接传绝对路径：python wiki_init.py \"D:\\你的项目\""
@@ -135,6 +137,13 @@ def explain(exc: Exception, path: str) -> str:
         )
     if isinstance(exc, IsADirectoryError):
         return "本想写文件，但该路径下已存在同名目录。\n     怎么办：换个项目目录，或先移走同名目录。"
+    if isinstance(exc, FileExistsError):
+        return (
+            "该位置已有同名的文件或目录，无法创建。\n"
+            "     怎么办：\n"
+            "       1. 若报错路径是 .wiki，多半是被同名文件占位，改名备份后重跑；\n"
+            "       2. 其它情况先改名备份（别直接删，可能是你的数据），再重跑。"
+        )
     if isinstance(exc, OSError) and getattr(exc, "errno", None) == 28:
         return "磁盘空间不足。\n     怎么办：清理磁盘后重跑。"
     return (
@@ -170,6 +179,21 @@ def main() -> int:
         print("           怎么办：把参数换成项目目录，例如 python wiki_init.py \"D:\\你的项目\"")
         return 1
 
+    # 提前检测「.wiki 被同名文件占位」这个高频坑。
+    # 为什么不在 except 里分辨：Windows 上 .wiki 是文件时，创建 .wiki\raw 会返回
+    # ERROR_PATH_NOT_FOUND，被 Python 映射成 FileNotFoundError，
+    # 于是走进「路径不存在」分支，给出"先 cd 到项目根"这种**永远修不好**的建议。
+    # （Linux 抛的是 NotADirectoryError，行为与 Windows 不同。）
+    # 靠异常类型分支必然误诊，主动检测才能给出准确诊断。
+    if os.path.exists(wiki) and not os.path.isdir(wiki):
+        print("[技能进化] 初始化失败：%s" % wiki)
+        print("     .wiki 已被同名**文件**占位，而它应该是一个目录。")
+        print("     怎么办：")
+        print("       1. 先确认这个文件没用（Windows: type \"%s\"；macOS/Linux: cat）" % wiki)
+        print("       2. 改名备份留底（别直接删）：把 .wiki 改成 .wiki.bak")
+        print("       3. 重跑本命令")
+        return 1
+
     try:
         for d in EMPTY_DIRS:
             with_retry(lambda d=d: os.makedirs(os.path.join(wiki, d), exist_ok=True))
@@ -178,7 +202,7 @@ def main() -> int:
             write_file(os.path.join(wiki, rel), content, date_str)
     except OSError as exc:
         print("[技能进化] 初始化失败：%s" % wiki)
-        print("     %s" % explain(exc, wiki))
+        print("     %s" % explain_error(exc, wiki))
         return 1
 
     print("[技能进化] 初始化完成: %s" % wiki)

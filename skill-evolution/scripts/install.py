@@ -150,12 +150,21 @@ def explain_error(exc: Exception, path) -> str:
     if isinstance(exc, FileNotFoundError):
         return (
             "路径不存在（多半是 --target 指错了，或上级目录已被删除）。\n"
+            "       注意：Windows 在「路径中间某段是普通文件」时也会误报为路径不存在，\n"
+            "             若该路径其实存在，请检查沿途各段有没有被同名文件占位。\n"
             "       怎么办：\n"
             "         1. 确认目录真的存在，或用绝对路径；\n"
             "         2. 不传 --target 时默认用当前目录，先 cd 到项目根。"
         )
     if isinstance(exc, NotADirectoryError):
         return "路径中间有一段是普通文件，不是目录。\n       怎么办：检查 %s 是否被同名文件占位。" % path
+    if isinstance(exc, FileExistsError):
+        return (
+            "该位置已有同名的文件或目录，无法创建。\n"
+            "       怎么办：\n"
+            "         1. 若报错路径是 .wiki，多半是被同名文件占位，改名备份后重跑；\n"
+            "         2. 其它情况先改名备份（别直接删，可能是你的数据），再重跑。"
+        )
     if isinstance(exc, OSError) and getattr(exc, "errno", None) == 28:
         return "磁盘空间不足。\n       怎么办：清理磁盘后重跑。"
     return (
@@ -496,6 +505,20 @@ def install(args) -> int:
     if not target.is_dir():
         print("[错误] --target 指向的不是目录：%s" % target)
         print("       怎么办：--target 要传项目目录，不是某个文件。")
+        return 1
+
+    # 提前检测「.wiki 被同名文件占位」这个高频坑。
+    # 为什么不在 except 里分辨：此时 mkdir 抛的是 WinError 183(FileExistsError)，
+    # 而 Windows 上若占位文件在路径中间，还会被误报成"路径不存在"——
+    # 靠异常类型分支必然给错建议。主动检测才能给出准确诊断。
+    wiki_dir = target / ".wiki"
+    if wiki_dir.exists() and not wiki_dir.is_dir():
+        print("[错误] .wiki 已被同名**文件**占位，而它应该是一个目录：")
+        print("       %s" % wiki_dir)
+        print("       怎么办：")
+        print("         1. 先确认这个文件没用（Windows: type \"%s\"；macOS/Linux: cat）" % wiki_dir)
+        print("         2. 改名备份留底（别直接删）：把 .wiki 改成 .wiki.bak")
+        print("         3. 重跑本命令")
         return 1
 
     print("=== 技能进化（知行环）安装（项目级 · 自包含）===")

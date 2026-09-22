@@ -148,6 +148,10 @@
 | `UnicodeEncodeError: 'gbk' codec can't encode` | Windows 控制台默认编码装不下中文 | 脚本已内置修复；若仍有，运行前设 `PYTHONIOENCODING=utf-8` |
 | `PermissionError: [Errno 13]` / `[WinError 5] 拒绝访问` | 文件被别的程序占用（编辑器、杀毒扫描）或无写权限 | 脚本会**自动重试**几次；仍失败就关掉占用它的编辑器/杀软，或换有权限的目录 |
 | `FileNotFoundError` / `No such file or directory` | 路径不存在，多半是没站在项目根目录 | 用绝对路径，或先 `cd` 到项目根再执行 |
+| `FileNotFoundError` 但**路径明明存在** | Windows 特有的误报：路径中间某一段其实是**文件**，不是目录 | 逐段检查路径，找出被同名文件占位的那一段，改名备份后重跑 |
+| `.wiki` 存在但不是目录（`FileExistsError` / `[WinError 183] 当文件已存在时，无法创建该文件`） | `.wiki` 被一个**同名文件**占位，而它必须是个目录 | 确认该文件没用后**改名备份**（`.wiki` → `.wiki.bak`）再重跑；**别直接删** |
+| 本想写文件却撞上同名目录（`IsADirectoryError`） | 该位置已有同名目录占着 | 换个项目目录，或先把同名目录移走 |
+| `[Errno 28] No space left on device` | 磁盘满了 | 清理磁盘后重跑；已写入的文件会保留 |
 | `bash: .wiki/scripts/wiki_init.sh: No such file or directory` | Windows 上没有 bash | 改用 `.py` 入口：`python .wiki/scripts/wiki_init.py` |
 | `execvpe(/bin/bash) failed` | PATH 里的 `bash` 是 **WSL 中继**，机器上并没有真的 bash | 用 Git Bash 的完整路径，或直接改用 `.py` 入口 |
 | `'python' 不是内部或外部命令` / `python: command not found` | 只有 `python3` 或 `py -3` | 换 `python3` 或 `py -3`；本 skill 只要求 Python 3.6+ |
