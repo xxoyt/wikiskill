@@ -43,6 +43,7 @@ REQUIRED = [
     "references/rsi-framework.md",
     "references/design-playbook.md",
     "references/workflow.md",
+    "references/anti-patterns.md",
     "references/platforms.md",
     "references/automation.md",
     "references/templates.md",

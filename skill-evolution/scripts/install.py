@@ -26,6 +26,13 @@
     claude    -> CLAUDE.md + .claude/settings.json (Stop hook)
     codex     -> AGENTS.md（Codex 无 hook 机制，不生成配置文件）
     workbuddy -> 只准备 .wiki/，指令由 WorkBuddy 的 SKILL.md 提供
+
+容错设计:
+    · 幂等：已存在的文件一律不覆盖（含 .wiki/ 数据、指令文件）。
+    · 瞬时失败自动重试：Windows 上杀毒扫描 / 编辑器占用会导致 PermissionError，
+      退避重试几次即可成功，避免"手动再跑一遍"。
+    · 报错说人话：不抛原始 traceback，给「哪里出错 + 怎么办」。
+      完整排查表见 references/anti-patterns.md。
 """
 
 import argparse
@@ -33,6 +40,8 @@ import json
 import os
 import shutil
 import sys
+import time
+from datetime import date
 from pathlib import Path
 
 # Windows 下 stdout 默认是 GBK(cp936)，输出中文会抛 UnicodeEncodeError。
@@ -55,10 +64,32 @@ RUNTIME_FILES = ["wiki_init.py", "wiki_init.sh", "wiki_init.ps1",
                  "wiki_remind.py", "wiki_remind.sh"]
 
 # 参考文档（复制进项目 .wiki/references/）
-# 前四个是经验沉淀（.wiki 运行时）所必需；后两个是 RSI 判据与自改进设计手册，
-# 一并复制以便项目内的联合自改进闭环自包含、不依赖 skill 安装目录。
+# 前四个是经验沉淀（.wiki 运行时）所必需；后三个是 RSI 判据、自改进设计手册
+# 与反模式清单，一并复制以便项目内的联合自改进闭环自包含、不依赖 skill 安装目录。
 REFERENCE_FILES = ["workflow.md", "platforms.md", "automation.md", "templates.md",
-                   "rsi-framework.md", "design-playbook.md"]
+                   "rsi-framework.md", "design-playbook.md", "anti-patterns.md"]
+
+# 瞬时失败重试次数与退避基数（秒）
+RETRY_TIMES = 3
+RETRY_DELAY = 0.4
+
+# 只对"重试可能成功"的错误重试；永久性错误立即失败，不白等。
+# errno: 13=EACCES 11=EAGAIN 16=EBUSY 26=ETXTBSY
+# winerror: 5=拒绝访问 32=文件被占用 33=文件被锁定
+TRANSIENT_ERRNOS = {11, 13, 16, 26}
+TRANSIENT_WINERRORS = {5, 32, 33}
+
+
+def is_transient(exc: Exception) -> bool:
+    """判断是否属于"稍等重试就能成功"的瞬时故障。"""
+    if isinstance(exc, PermissionError):
+        return True
+    if isinstance(exc, OSError):
+        if getattr(exc, "errno", None) in TRANSIENT_ERRNOS:
+            return True
+        if getattr(exc, "winerror", None) in TRANSIENT_WINERRORS:
+            return True
+    return False
 
 PLATFORM_SPECS = {
     "claude": {
@@ -80,6 +111,67 @@ PLATFORM_SPECS = {
         "supports_hook": False,
     },
 }
+
+
+def with_retry(fn):
+    """
+    执行文件操作，遇**瞬时** OSError 自动重试（退避 0.4s / 0.8s）。
+
+    Windows 上常见的瞬时失败：杀毒软件正在扫描刚复制的文件、编辑器短暂锁目录，
+    报 errno 13 / winerror 32。这类失败重试即可成功，不该让用户手动再跑一遍。
+
+    永久性错误（路径不存在、路径中间是文件、磁盘满）**立即抛出**，不浪费等待时间，
+    由调用方翻译成人话。判定逻辑见 is_transient()。
+    """
+    last = None
+    for attempt in range(RETRY_TIMES):
+        try:
+            return fn()
+        except OSError as exc:
+            if not is_transient(exc):
+                raise
+            last = exc
+            if attempt < RETRY_TIMES - 1:
+                time.sleep(RETRY_DELAY * (attempt + 1))
+    raise last
+
+
+def explain_error(exc: Exception, path) -> str:
+    """把系统异常翻译成「人话 + 怎么办」，最多 3 步。"""
+    kind = type(exc).__name__
+    if isinstance(exc, PermissionError):
+        return (
+            "没有写入权限，或文件正被其他程序占用。\n"
+            "       怎么办：\n"
+            "         1. 关掉打开着该目录的编辑器 / 资源管理器窗口；\n"
+            "         2. 若装了杀毒软件，把项目目录加入白名单（或稍等几秒重跑）；\n"
+            "         3. 仍失败则换一个你有写权限的目录重装。"
+        )
+    if isinstance(exc, FileNotFoundError):
+        return (
+            "路径不存在（多半是 --target 指错了，或上级目录已被删除）。\n"
+            "       怎么办：\n"
+            "         1. 确认目录真的存在，或用绝对路径；\n"
+            "         2. 不传 --target 时默认用当前目录，先 cd 到项目根。"
+        )
+    if isinstance(exc, NotADirectoryError):
+        return "路径中间有一段是普通文件，不是目录。\n       怎么办：检查 %s 是否被同名文件占位。" % path
+    if isinstance(exc, OSError) and getattr(exc, "errno", None) == 28:
+        return "磁盘空间不足。\n       怎么办：清理磁盘后重跑。"
+    return (
+        "系统调用失败：%s: %s\n"
+        "       怎么办：把这条提示连同上面的路径一起提供给 AI 助手，或查\n"
+        "       references/anti-patterns.md 的「报错速查表」。" % (kind, exc)
+    )
+
+
+def write_text(path: Path, text: str) -> None:
+    """始终以 UTF-8 + LF 写文本（newline 参数在 3.10 才有，故不用 write_text）。"""
+    def _do():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(str(path), "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+    with_retry(_do)
 
 
 def source_dirs() -> tuple:
@@ -107,7 +199,7 @@ def create_wiki_skeleton(target: Path) -> bool:
     """创建 .wiki/ 骨架。已存在则原样保留（绝不覆盖用户数据）。"""
     created = not (target / ".wiki").exists()
     for sub in ("raw", "knowledge", "skills", "meta", "scripts", "references"):
-        (target / ".wiki" / sub).mkdir(parents=True, exist_ok=True)
+        with_retry(lambda sub=sub: (target / ".wiki" / sub).mkdir(parents=True, exist_ok=True))
 
     if created:
         files = {
@@ -115,29 +207,35 @@ def create_wiki_skeleton(target: Path) -> bool:
             "knowledge/evolution_log.md": "# 技能演化日志\n\n（暂无记录）\n",
             "knowledge/impact_tracker.md": "# 提案影响追踪\n\n（暂无记录）\n",
             "meta/config.md": "# Wiki 配置\n\n- **创建日期**：%s\n- **维护周期**：每 3-5 个任务后执行一次 Wiki Maintainer\n"
-                             % __import__("datetime").date.today().isoformat(),
+                             % date.today().isoformat(),
         }
         for rel, content in files.items():
             p = target / ".wiki" / rel
             if not p.exists():
-                p.write_text(content, encoding="utf-8")
+                write_text(p, content)
     return created
 
 
-def copy_runtime(target: Path, scripts_src: Path, refs_src: Path) -> list:
-    """复制运行时脚本与参考文档进项目，返回复制的文件清单。"""
-    copied = []
-    for name in RUNTIME_FILES:
-        src = scripts_src / name
+def copy_runtime(target: Path, scripts_src: Path, refs_src: Path) -> tuple:
+    """
+    复制运行时脚本与参考文档进项目。
+
+    返回 (copied, missing)：missing 里的源文件在包里就不存在。
+    之所以要报出来而不是静默跳过：静默跳过会让用户以为"装好了"，
+    实际缺文件却在运行时才暴露。
+    """
+    copied, missing = [], []
+    pairs = ([(scripts_src / n, target / ".wiki" / "scripts" / n, "scripts/" + n)
+              for n in RUNTIME_FILES]
+             + [(refs_src / n, target / ".wiki" / "references" / n, "references/" + n)
+                for n in REFERENCE_FILES])
+    for src, dst, label in pairs:
         if src.exists():
-            shutil.copy2(src, target / ".wiki" / "scripts" / name)
-            copied.append("scripts/" + name)
-    for name in REFERENCE_FILES:
-        src = refs_src / name
-        if src.exists():
-            shutil.copy2(src, target / ".wiki" / "references" / name)
-            copied.append("references/" + name)
-    return copied
+            with_retry(lambda s=src, d=dst: shutil.copy2(str(s), str(d)))
+            copied.append(label)
+        else:
+            missing.append(label)
+    return copied, missing
 
 
 SELF_CONTAINED_INIT = """如果 `.wiki/` 不存在，任选一种方式创建：
@@ -171,6 +269,7 @@ printf '# 提案影响追踪\\n\\n（暂无记录）\\n' > .wiki/knowledge/impac
 SELF_CONTAINED_REF = """- 闭环全图与四问评分卡（权威源）：`.wiki/references/workflow.md`
 - ① 选域 / ⑦ 升阶（HCI、L1–L5）：`.wiki/references/rsi-framework.md`
 - 全链自改进设计五步：`.wiki/references/design-playbook.md`
+- **反模式清单与报错速查（别这样做 / 报错怎么办）**：`.wiki/references/anti-patterns.md`
 - 平台适配：`.wiki/references/platforms.md`
 - 自动化方案：`.wiki/references/automation.md`
 - 模板集合：`.wiki/references/templates.md`
@@ -278,9 +377,12 @@ def merge_hook(settings_path: Path, command: str) -> str:
     settings = {}
     if settings_path.exists():
         try:
-            settings = json.loads(settings_path.read_text(encoding="utf-8"))
+            settings = json.loads(with_retry(
+                lambda: settings_path.read_text(encoding="utf-8")))
         except json.JSONDecodeError:
-            return "错误：%s 不是合法 JSON，已中止以免损坏配置。" % settings_path
+            return ("错误：%s 不是合法 JSON，已中止以免损坏配置。\n"
+                    "       怎么办：从备份恢复该文件，或删掉它后重跑（会重新生成）。"
+                    % settings_path)
 
     existing = collect_skill_hooks(settings)
     if existing and all(cmd == command for _, _, cmd in existing):
@@ -292,9 +394,8 @@ def merge_hook(settings_path: Path, command: str) -> str:
 
     settings.setdefault("hooks", {}).setdefault("Stop", []).append(
         {"hooks": [{"type": "command", "command": command}]})
-    settings_path.parent.mkdir(parents=True, exist_ok=True)
-    settings_path.write_text(
-        json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_text(settings_path,
+               json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
 
     if old:
         return ("已升级 hook（替换旧命令，其余配置保留）：%s\n  旧：%s\n  新：%s"
@@ -306,9 +407,11 @@ def remove_hook(settings_path: Path) -> str:
     if not settings_path.exists():
         return "跳过：配置文件不存在 %s" % settings_path
     try:
-        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        settings = json.loads(with_retry(
+            lambda: settings_path.read_text(encoding="utf-8")))
     except json.JSONDecodeError:
-        return "错误：%s 不是合法 JSON，已中止。" % settings_path
+        return ("错误：%s 不是合法 JSON，已中止。\n"
+                "       怎么办：从备份恢复该文件后重跑。" % settings_path)
 
     existing = collect_skill_hooks(settings)
     if not existing:
@@ -318,8 +421,7 @@ def remove_hook(settings_path: Path) -> str:
     # hook 和用户自己的 hook（例如手工把两者放在一起）。按组删除会把用户自己的
     # hook 一起干掉，且与升级路径（merge_hook）的行为不一致。
     strip_skill_hooks(settings)
-    settings_path.write_text(
-        json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_text(settings_path, json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
     return ("已移除 %d 条技能进化（知行环）hook（同组其他 hook 与其余配置保持不变）：%s"
             % (len(existing), settings_path))
 
@@ -333,19 +435,20 @@ def install_user_level(platform: str, scripts_src: Path, want_hook: bool) -> int
     """
     spec = PLATFORM_SPECS[platform]
     dest = Path.home() / spec["user_dir"] / "scripts" / "skill-evolution"
-    dest.mkdir(parents=True, exist_ok=True)
+    with_retry(lambda: dest.mkdir(parents=True, exist_ok=True))
 
     missing = []
     for name in RUNTIME_FILES:
         src = scripts_src / name
         if src.exists():
-            shutil.copy2(src, dest / name)
+            with_retry(lambda s=src, n=name: shutil.copy2(str(s), str(dest / n)))
         else:
             missing.append(name)
 
     print("[用户级] 运行时已复制到：%s" % dest)
     if missing:
-        print("        缺失源文件（可忽略）：%s" % ", ".join(missing))
+        print("        缺失源文件（可忽略，多为 .sh 在 Windows 上不需要）：%s"
+              % ", ".join(missing))
 
     # 整合前的用户级安装会把运行时放在 <平台目录>/scripts/wikiskill/。
     # 新 hook 指向新目录，旧目录不再被引用，但不会自动删除 —— 明确提示，
@@ -377,7 +480,8 @@ def install(args) -> int:
 
     if not scripts_src.exists():
         print("[错误] 找不到 scripts/ 目录：%s" % scripts_src)
-        print("       请确认 install.py 仍在 skill-evolution 包内的 scripts/ 下。")
+        print("       怎么办：确认 install.py 仍在 skill-evolution 包内的 scripts/ 下，")
+        print("               从解压后的完整目录里执行，别单独把 install.py 拷出来。")
         return 1
 
     if args.user:
@@ -387,40 +491,56 @@ def install(args) -> int:
     target = Path(args.target).resolve() if args.target else Path.cwd()
     if not target.exists():
         print("[错误] 目标目录不存在：%s" % target)
+        print("       怎么办：确认路径拼写，或先 cd 到项目根目录再执行。")
+        return 1
+    if not target.is_dir():
+        print("[错误] --target 指向的不是目录：%s" % target)
+        print("       怎么办：--target 要传项目目录，不是某个文件。")
         return 1
 
     print("=== 技能进化（知行环）安装（项目级 · 自包含）===")
     print("目标项目：%s" % target)
     print()
 
-    fresh = create_wiki_skeleton(target)
-    print("[1/4] .wiki/ 骨架：%s" % ("已创建" if fresh else "已存在，原样保留"))
+    try:
+        fresh = create_wiki_skeleton(target)
+        print("[1/4] .wiki/ 骨架：%s" % ("已创建" if fresh else "已存在，原样保留"))
 
-    copied = copy_runtime(target, scripts_src, refs_src)
-    print("[2/4] 运行时复制：%d 个文件 -> .wiki/scripts/ 与 .wiki/references/" % len(copied))
+        copied, missing = copy_runtime(target, scripts_src, refs_src)
+        print("[2/4] 运行时复制：%d 个文件 -> .wiki/scripts/ 与 .wiki/references/"
+              % len(copied))
+        if missing:
+            print("      注意：包里缺少这些源文件，未复制：%s" % ", ".join(missing))
+            print("      这不影响使用（多为你主动精简过包），但项目内会引用不到它们。")
 
-    if spec["instruction"]:
-        tpl = refs_src / spec["template"]
-        if tpl.exists():
-            out = target / spec["instruction"]
-            if out.exists():
-                print("[3/4] %s 已存在，跳过以免覆盖你的修改（需更新请手动删除后重跑）"
-                      % spec["instruction"])
+        if spec["instruction"]:
+            tpl = refs_src / spec["template"]
+            if tpl.exists():
+                out = target / spec["instruction"]
+                if out.exists():
+                    print("[3/4] %s 已存在，跳过以免覆盖你的修改（需更新请手动删除后重跑）"
+                          % spec["instruction"])
+                else:
+                    write_text(out, render_instruction(tpl))
+                    print("[3/4] 已生成 %s（自包含，路径均指向项目内）" % spec["instruction"])
             else:
-                out.write_text(render_instruction(tpl), encoding="utf-8")
-                print("[3/4] 已生成 %s（自包含，路径均指向项目内）" % spec["instruction"])
+                print("[3/4] 跳过：模板不存在 %s" % tpl)
         else:
-            print("[3/4] 跳过：模板不存在 %s" % tpl)
-    else:
-        print("[3/4] 跳过：%s 平台不需要额外指令文件（指令由该平台的 SKILL.md 提供）"
-              % args.platform)
+            print("[3/4] 跳过：%s 平台不需要额外指令文件（指令由该平台的 SKILL.md 提供）"
+                  % args.platform)
 
-    if args.no_hook or not spec["supports_hook"]:
-        reason = "已用 --no-hook 指定" if args.no_hook else "平台无 hook 机制"
-        print("[4/4] 跳过 hook 安装（%s）" % reason)
-    else:
-        settings_path = target / spec["user_dir"] / "settings.json"
-        print("[4/4] " + merge_hook(settings_path, remind_command(True, target)))
+        if args.no_hook or not spec["supports_hook"]:
+            reason = "已用 --no-hook 指定" if args.no_hook else "平台无 hook 机制"
+            print("[4/4] 跳过 hook 安装（%s）" % reason)
+        else:
+            settings_path = target / spec["user_dir"] / "settings.json"
+            print("[4/4] " + merge_hook(settings_path, remind_command(True, target)))
+    except OSError as exc:
+        print()
+        print("[错误] 安装中断 —— %s" % target)
+        print("       %s" % explain_error(exc, target))
+        print("       已写入的文件都保留着；修好上述问题后重跑本命令即可（不会覆盖已有内容）。")
+        return 1
 
     print()
     print("完成。项目现已自包含，可整体提交 Git，换机器 clone 后无需重装。")
@@ -432,6 +552,7 @@ def install(args) -> int:
         print("  1. 本平台不生成指令文件（指令由 %s 的 SKILL.md 提供），无需额外配置"
               % args.platform)
     print("  2. 别等自动流程 —— 直接把已知的坑手动写进 .wiki/knowledge/patterns.md")
+    print("  3. 想避开常见坑，扫一眼 .wiki/references/anti-patterns.md")
     return 0
 
 
@@ -439,17 +560,23 @@ def uninstall(args) -> int:
     spec = PLATFORM_SPECS[args.platform]
     print("=== 技能进化（知行环）卸载 ===")
 
-    if args.user:
-        settings_path = Path.home() / spec["user_dir"] / "settings.json"
-        print(remove_hook(settings_path))
-        dest = Path.home() / spec["user_dir"] / "scripts" / "skill-evolution"
-        if dest.exists():
-            print("运行时目录仍保留：%s（如需彻底删除请手动移除）" % dest)
-    else:
-        target = Path(args.target).resolve() if args.target else Path.cwd()
-        settings_path = target / spec["user_dir"] / "settings.json"
-        print(remove_hook(settings_path))
-        print("已保留 .wiki/ 与 %s —— 经验数据不自动删除。" % (spec["instruction"] or "指令文件"))
+    try:
+        if args.user:
+            settings_path = Path.home() / spec["user_dir"] / "settings.json"
+            print(remove_hook(settings_path))
+            dest = Path.home() / spec["user_dir"] / "scripts" / "skill-evolution"
+            if dest.exists():
+                print("运行时目录仍保留：%s（如需彻底删除请手动移除）" % dest)
+        else:
+            target = Path(args.target).resolve() if args.target else Path.cwd()
+            settings_path = target / spec["user_dir"] / "settings.json"
+            print(remove_hook(settings_path))
+            print("已保留 .wiki/ 与 %s —— 经验数据不自动删除。"
+                  % (spec["instruction"] or "指令文件"))
+    except OSError as exc:
+        print("[错误] 卸载中断")
+        print("       %s" % explain_error(exc, ""))
+        return 1
     return 0
 
 
@@ -467,6 +594,7 @@ def main() -> int:
     args = p.parse_args()
     if args.user and args.target:
         print("[错误] --user 与 --target 不可同时使用（用户级不针对单个项目）。")
+        print("       怎么办：二选一 —— 用户级用 --user；只装某个项目用 --target <目录>。")
         return 1
     return uninstall(args) if args.uninstall else install(args)
 

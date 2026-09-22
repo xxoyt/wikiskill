@@ -425,6 +425,35 @@ hook 配置（例如其他插件注入的 `SessionStart`），只刷运行时、
 
 ---
 
+## 能力边界：什么时候不该用它
+
+**它擅长**：把「项目内、你亲自踩过、有明确反馈」的经验沉淀成可复用技能。
+反馈越廉价（编译 / 测试 / 报错）、验证越明确，闭环闭合得越快。
+
+**它不擅长，别硬上**：
+
+| 场景 | 为什么不行 | 替代做法 |
+|------|-----------|---------|
+| 跨项目、跨团队的通用知识库 | `.wiki/` 是**项目级**的，设计上刻意不过度泛化 | 手动复制通用性强的 `skills/*.md` 到别的项目 |
+| 语义检索 / 海量经验召回 | 就是一堆 Markdown 文件，**没有向量检索与排序** | 用向量库或知识库产品 |
+| 完全无人值守的自改进 | ⑤ 门控**必须人工**：没有 held-out 验证集，自动化只会让无效技能污染技能库 | 接受"半自动"——自动化跑 ②③④，你来拍板 ⑤⑥ |
+| 追求 L5 级递归自我改进 | 论文亦未充分验证，本框架**明确不承诺** | 现实目标 L2–L3 |
+| 一次性的、不会重复的坑 | 没有第二次，沉淀没有收益 | 写进 commit message 或代码注释即可 |
+| 需要长期留存的敏感数据经验 | `.wiki/` 是**纯文本且建议提交 Git** | 脱敏后再记，或改用私有存储 |
+
+**用高级功能（④ 提议 → ⑤ 门控）前，先弄懂这三件事**：
+
+- 为什么「可回滚」是**一票否决** → `references/workflow.md` 的门控章节
+- 为什么**自评分不算证据** → 同上「四问评分卡」
+- 为什么执行任务的 Agent **不许读 Wiki** → 本文件开头的角色隔离红线
+
+没弄懂就去用高级功能，最常见的后果是**技能库被无效技能污染**，
+且因缺乏变更历史而**无法回退**——这比不用更糟。
+
+**常见用错方式已单独汇总**：`references/anti-patterns.md`（含报错速查表）。
+
+---
+
 ## 参考资源
 
 | 文档 | 内容 |
@@ -432,6 +461,7 @@ hook 配置（例如其他插件注入的 `SessionStart`），只刷运行时、
 | `references/workflow.md` | 三角色详细职责 + 四问门控评分卡完整版 |
 | `references/rsi-framework.md` | RSI：HCI 度量 / L1–L5 / 产业实践数据 |
 | `references/design-playbook.md` | 自改进设计五步工作流与方案模板 |
+| `references/anti-patterns.md` | **反模式清单（"别这样做"）+ 报错速查表** |
 | `references/automation.md` | 自动化方案 + 三种粒度的 prompt 模板 |
 | `references/platforms.md` | 跨平台适配指南（跨 OS 路径陷阱的唯一权威源） |
 | `references/templates.md` | Markdown 模板集合 |
@@ -447,6 +477,7 @@ hook 配置（例如其他插件注入的 `SessionStart`），只刷运行时、
 | `scripts/wiki_init.ps1` | 初始化 `.wiki/` | Windows PowerShell 原生 |
 | `scripts/wiki_remind.py` | Stop hook 提醒脚本 | 全平台（Windows 必用） |
 | `scripts/wiki_remind.sh` | Stop hook 提醒脚本 | Unix |
+| `scripts/selfcheck.py` | 包体自检（只读；改动后 / 分发前跑） | 全平台 |
 
 **Windows 路径陷阱（必读）**：CMD/PowerShell 原生环境没有 bash，`.sh` 跑不了；
 反过来，**在 Git Bash 里不能用 `python "$HOME/..."`**——Git Bash 的 `$HOME` 是
